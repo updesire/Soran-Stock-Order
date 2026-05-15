@@ -59,6 +59,30 @@ final class Admin {
 		return !empty($value) ? 1 : 0;
 	}
 
+	private function sanitize_stock_priority($value): array {
+		$allowed = ['instock', 'onbackorder', 'outofstock'];
+		$default = ['instock', 'onbackorder', 'outofstock'];
+
+		if (!is_array($value)) {
+			return $default;
+		}
+
+		$out = [];
+		foreach ($value as $item) {
+			$key = sanitize_key((string) $item);
+			if (in_array($key, $allowed, true)) {
+				$out[] = $key;
+			}
+		}
+
+		$out = array_values(array_unique($out));
+		if (count($out) !== 3) {
+			return $default;
+		}
+
+		return $out;
+	}
+
 	public function register_settings(): void {
 		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_ENABLE, [
 			'type' => 'integer',
@@ -100,11 +124,49 @@ final class Admin {
 			'sanitize_callback' => [$this, 'sanitize_checkbox'],
 			'default' => 1,
 		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_STOCK_PRIORITY, [
+			'type' => 'array',
+			'sanitize_callback' => [$this, 'sanitize_stock_priority'],
+			'default' => ['instock', 'onbackorder', 'outofstock'],
+		]);
 	}
 
 	private function checkbox_field(string $name, bool $checked): string {
 		$out = '<input type="hidden" name="' . esc_attr($name) . '" value="0" />';
 		$out .= '<label class="sso-switch"><input type="checkbox" name="' . esc_attr($name) . '" value="1" ' . checked(true, $checked, false) . ' /><span class="sso-slider" aria-hidden="true"></span></label>';
+		return $out;
+	}
+
+	private function stock_status_label(string $status): string {
+		if ($status === 'instock') {
+			return 'موجود';
+		}
+		if ($status === 'onbackorder') {
+			return 'بک‌اوردر/پیش‌فروش';
+		}
+		if ($status === 'outofstock') {
+			return 'ناموجود';
+		}
+		return $status;
+	}
+
+	private function stock_priority_field(array $priority): string {
+		$allowed = ['instock', 'onbackorder', 'outofstock'];
+		$priority = $this->sanitize_stock_priority($priority);
+
+		$out = '<div class="sso-priority">';
+		for ($i = 0; $i < 3; $i++) {
+			$out .= '<div class="sso-priority__row">';
+			$out .= '<div class="sso-priority__pos">' . esc_html((string) ($i + 1)) . '</div>';
+			$out .= '<select class="sso-select" name="' . esc_attr(Plugin::OPT_STOCK_PRIORITY) . '[]">';
+			foreach ($allowed as $status) {
+				$out .= '<option value="' . esc_attr($status) . '"' . selected($priority[$i] ?? '', $status, false) . '>' . esc_html($this->stock_status_label($status)) . '</option>';
+			}
+			$out .= '</select>';
+			$out .= '</div>';
+		}
+		$out .= '</div>';
+
 		return $out;
 	}
 
@@ -121,6 +183,7 @@ final class Admin {
 		$apply_tag = $this->plugin->get_bool_option(Plugin::OPT_APPLY_TAG, 1);
 		$apply_all = $this->plugin->get_bool_option(Plugin::OPT_APPLY_ALL, 0);
 		$only_main_query = $this->plugin->get_bool_option(Plugin::OPT_ONLY_MAIN_QUERY, 1);
+		$stock_priority = get_option(Plugin::OPT_STOCK_PRIORITY, ['instock', 'onbackorder', 'outofstock']);
 
 		echo '<div class="wrap sso-wrap">';
 		echo '<div class="sso-header">';
@@ -174,7 +237,8 @@ final class Admin {
 		echo '<table class="form-table" role="presentation">';
 
 		echo '<tr><th scope="row">' . esc_html__('فعال', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_ENABLE, $enable) . '<p class="description">' . esc_html__('اگر خاموش باشد، هیچ تغییری روی ترتیب نمایش محصولات اعمال نمی‌شود.', 'soran-stock-order') . '</p></td></tr>';
-		echo '<tr><th scope="row">' . esc_html__('انتقال ناموجودها به انتها', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_OUTOFSTOCK_LAST, $outofstock_last) . '<p class="description">' . esc_html__('اگر خاموش باشد، ناموجودها به ابتدای لیست منتقل می‌شوند.', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('انتقال ناموجودها به انتها (حالت ساده)', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_OUTOFSTOCK_LAST, $outofstock_last) . '<p class="description">' . esc_html__('این گزینه برای حالت ساده است و بیشتر برای سازگاری استفاده می‌شود.', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('اولویت وضعیت موجودی', 'soran-stock-order') . '</th><td>' . $this->stock_priority_field((array) $stock_priority) . '<p class="description">' . esc_html__('ترتیب نمایش وضعیت‌ها را مشخص کنید (مثلاً موجود → بک‌اوردر/پیش‌فروش → ناموجود).', 'soran-stock-order') . '</p></td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('عدم تغییر هنگام مرتب‌سازی کاربر', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_RESPECT_ORDERBY, $respect_orderby) . '<p class="description">' . esc_html__('وقتی کاربر/ویجت‌ها orderby می‌فرستند، پلاگین دخالت نمی‌کند.', 'soran-stock-order') . '</p></td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('فقط روی کوئری اصلی', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_ONLY_MAIN_QUERY, $only_main_query) . '<p class="description">' . esc_html__('پیشنهادی برای جلوگیری از تداخل با کوئری‌های سفارشی قالب/المنتور/فیلترها.', 'soran-stock-order') . '</p></td></tr>';
 

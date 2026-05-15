@@ -15,6 +15,7 @@ final class Plugin {
 	public const OPT_APPLY_TAG = 'soran_stock_order_apply_tag';
 	public const OPT_APPLY_ALL = 'soran_stock_order_apply_all';
 	public const OPT_ONLY_MAIN_QUERY = 'soran_stock_order_only_main_query';
+	public const OPT_STOCK_PRIORITY = 'soran_stock_order_stock_priority';
 
 	private static $instance;
 	private $admin;
@@ -53,4 +54,3 @@ final class Plugin {
 		return (int) get_option($key, $default) === 1;
 	}
 }
-
