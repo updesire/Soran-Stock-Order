@@ -59,6 +59,40 @@ final class Admin {
 		return !empty($value) ? 1 : 0;
 	}
 
+	private function sanitize_rules_mode($value): string {
+		$value = sanitize_key((string) $value);
+		return in_array($value, ['exclude', 'include'], true) ? $value : 'exclude';
+	}
+
+	private function sanitize_taxonomy_slug($value): string {
+		$value = sanitize_key((string) $value);
+		return $value;
+	}
+
+	private function sanitize_csv_ids($value): array {
+		if (is_array($value)) {
+			$value = implode(',', array_map('strval', $value));
+		}
+
+		$raw = trim((string) $value);
+		if ($raw === '') {
+			return [];
+		}
+
+		$parts = preg_split('/[\s,;]+/', $raw);
+		$out = [];
+		foreach ((array) $parts as $part) {
+			$id = (int) trim((string) $part);
+			if ($id > 0) {
+				$out[] = $id;
+			}
+		}
+
+		$out = array_values(array_unique($out));
+		sort($out);
+		return $out;
+	}
+
 	private function sanitize_stock_priority($value): array {
 		$allowed = ['instock', 'onbackorder', 'outofstock'];
 		$default = ['instock', 'onbackorder', 'outofstock'];
@@ -129,6 +163,36 @@ final class Admin {
 			'sanitize_callback' => [$this, 'sanitize_stock_priority'],
 			'default' => ['instock', 'onbackorder', 'outofstock'],
 		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_RULES_MODE, [
+			'type' => 'string',
+			'sanitize_callback' => [$this, 'sanitize_rules_mode'],
+			'default' => 'exclude',
+		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_EXCLUDE_PRODUCT_IDS, [
+			'type' => 'array',
+			'sanitize_callback' => [$this, 'sanitize_csv_ids'],
+			'default' => [],
+		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_EXCLUDE_CAT_IDS, [
+			'type' => 'array',
+			'sanitize_callback' => [$this, 'sanitize_csv_ids'],
+			'default' => [],
+		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_EXCLUDE_TAG_IDS, [
+			'type' => 'array',
+			'sanitize_callback' => [$this, 'sanitize_csv_ids'],
+			'default' => [],
+		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_EXCLUDE_CUSTOM_TAX, [
+			'type' => 'string',
+			'sanitize_callback' => [$this, 'sanitize_taxonomy_slug'],
+			'default' => '',
+		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_EXCLUDE_CUSTOM_TAX_TERM_IDS, [
+			'type' => 'array',
+			'sanitize_callback' => [$this, 'sanitize_csv_ids'],
+			'default' => [],
+		]);
 	}
 
 	private function checkbox_field(string $name, bool $checked): string {
@@ -170,6 +234,32 @@ final class Admin {
 		return $out;
 	}
 
+	private function input_field(string $name, string $value, string $placeholder = ''): string {
+		$out = '<input class="sso-input" type="text" name="' . esc_attr($name) . '" value="' . esc_attr($value) . '"';
+		if ($placeholder !== '') {
+			$out .= ' placeholder="' . esc_attr($placeholder) . '"';
+		}
+		$out .= ' />';
+		return $out;
+	}
+
+	private function rules_mode_field(string $mode): string {
+		$mode = $this->sanitize_rules_mode($mode);
+		$out = '<select class="sso-select" name="' . esc_attr(Plugin::OPT_RULES_MODE) . '">';
+		$out .= '<option value="exclude"' . selected($mode, 'exclude', false) . '>' . esc_html__('اعمال برای همه به جز لیست (Exclude)', 'soran-stock-order') . '</option>';
+		$out .= '<option value="include"' . selected($mode, 'include', false) . '>' . esc_html__('فقط برای لیست مشخص (Only apply to listed)', 'soran-stock-order') . '</option>';
+		$out .= '</select>';
+		return $out;
+	}
+
+	private function ids_to_string($value): string {
+		$value = is_array($value) ? $value : [];
+		$ids = array_values(array_filter(array_map('intval', $value), static function ($id) {
+			return $id > 0;
+		}));
+		return $ids ? implode(', ', $ids) : '';
+	}
+
 	public function render_settings_page(): void {
 		if (!current_user_can($this->plugin->capability())) {
 			return;
@@ -184,6 +274,12 @@ final class Admin {
 		$apply_all = $this->plugin->get_bool_option(Plugin::OPT_APPLY_ALL, 0);
 		$only_main_query = $this->plugin->get_bool_option(Plugin::OPT_ONLY_MAIN_QUERY, 1);
 		$stock_priority = get_option(Plugin::OPT_STOCK_PRIORITY, ['instock', 'onbackorder', 'outofstock']);
+		$rules_mode = (string) get_option(Plugin::OPT_RULES_MODE, 'exclude');
+		$exclude_products = get_option(Plugin::OPT_EXCLUDE_PRODUCT_IDS, []);
+		$exclude_cats = get_option(Plugin::OPT_EXCLUDE_CAT_IDS, []);
+		$exclude_tags = get_option(Plugin::OPT_EXCLUDE_TAG_IDS, []);
+		$exclude_custom_tax = (string) get_option(Plugin::OPT_EXCLUDE_CUSTOM_TAX, '');
+		$exclude_custom_tax_terms = get_option(Plugin::OPT_EXCLUDE_CUSTOM_TAX_TERM_IDS, []);
 
 		echo '<div class="wrap sso-wrap">';
 		echo '<div class="sso-header">';
@@ -239,6 +335,12 @@ final class Admin {
 		echo '<tr><th scope="row">' . esc_html__('فعال', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_ENABLE, $enable) . '<p class="description">' . esc_html__('اگر خاموش باشد، هیچ تغییری روی ترتیب نمایش محصولات اعمال نمی‌شود.', 'soran-stock-order') . '</p></td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('انتقال ناموجودها به انتها (حالت ساده)', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_OUTOFSTOCK_LAST, $outofstock_last) . '<p class="description">' . esc_html__('این گزینه برای حالت ساده است و بیشتر برای سازگاری استفاده می‌شود.', 'soran-stock-order') . '</p></td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('اولویت وضعیت موجودی', 'soran-stock-order') . '</th><td>' . $this->stock_priority_field((array) $stock_priority) . '<p class="description">' . esc_html__('ترتیب نمایش وضعیت‌ها را مشخص کنید (مثلاً موجود → بک‌اوردر/پیش‌فروش → ناموجود).', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('قوانین استثنا', 'soran-stock-order') . '</th><td>' . $this->rules_mode_field($rules_mode) . '<p class="description">' . esc_html__('اگر لیست‌ها را پر کنید، می‌توانید مشخص کنید این پلاگین روی کدام دسته/تگ/برند (یا لیست‌های خاص) اعمال شود یا نشود.', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('دسته‌های محصول (ID)', 'soran-stock-order') . '</th><td>' . $this->input_field(Plugin::OPT_EXCLUDE_CAT_IDS, $this->ids_to_string($exclude_cats), 'مثال: 12, 48, 77') . '<p class="description">' . esc_html__('شناسه دسته‌های محصول (product_cat).', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('تگ‌های محصول (ID)', 'soran-stock-order') . '</th><td>' . $this->input_field(Plugin::OPT_EXCLUDE_TAG_IDS, $this->ids_to_string($exclude_tags), 'مثال: 5, 9') . '<p class="description">' . esc_html__('شناسه تگ‌های محصول (product_tag).', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('محصولات (ID)', 'soran-stock-order') . '</th><td>' . $this->input_field(Plugin::OPT_EXCLUDE_PRODUCT_IDS, $this->ids_to_string($exclude_products), 'مثال: 101, 205') . '<p class="description">' . esc_html__('در صورت استفاده از کوئری‌هایی که post__in دارند (مثل برخی شورت‌کدها) قابل اعمال است.', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('Taxonomy سفارشی (مثل برند)', 'soran-stock-order') . '</th><td>' . $this->input_field(Plugin::OPT_EXCLUDE_CUSTOM_TAX, $exclude_custom_tax, 'مثال: product_brand یا pa_brand') . '<p class="description">' . esc_html__('اسلاگ taxonomy را وارد کنید (در صورت نیاز).', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('Termهای taxonomy سفارشی (ID)', 'soran-stock-order') . '</th><td>' . $this->input_field(Plugin::OPT_EXCLUDE_CUSTOM_TAX_TERM_IDS, $this->ids_to_string($exclude_custom_tax_terms), 'مثال: 3, 8') . '<p class="description">' . esc_html__('شناسه termها برای taxonomy سفارشی وارد شده.', 'soran-stock-order') . '</p></td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('عدم تغییر هنگام مرتب‌سازی کاربر', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_RESPECT_ORDERBY, $respect_orderby) . '<p class="description">' . esc_html__('وقتی کاربر/ویجت‌ها orderby می‌فرستند، پلاگین دخالت نمی‌کند.', 'soran-stock-order') . '</p></td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('فقط روی کوئری اصلی', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_ONLY_MAIN_QUERY, $only_main_query) . '<p class="description">' . esc_html__('پیشنهادی برای جلوگیری از تداخل با کوئری‌های سفارشی قالب/المنتور/فیلترها.', 'soran-stock-order') . '</p></td></tr>';
 

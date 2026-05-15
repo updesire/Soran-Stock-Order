@@ -256,6 +256,23 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, .18), 0 10px 24px rgba(15, 23, 42, .06);
 }
 
+.sso-input {
+    width: 100%;
+    max-width: 460px;
+    min-height: 36px;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, .14);
+    background: #fff;
+    padding: 6px 10px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+}
+
+.sso-input:focus {
+    border-color: rgba(59, 130, 246, .55);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .18), 0 10px 24px rgba(15, 23, 42, .06);
+    outline: none;
+}
+
 .sso-card .form-table th {
     width: 280px;
     padding-left: 0;

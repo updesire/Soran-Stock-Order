@@ -16,6 +16,12 @@ final class Plugin {
 	public const OPT_APPLY_ALL = 'soran_stock_order_apply_all';
 	public const OPT_ONLY_MAIN_QUERY = 'soran_stock_order_only_main_query';
 	public const OPT_STOCK_PRIORITY = 'soran_stock_order_stock_priority';
+	public const OPT_RULES_MODE = 'soran_stock_order_rules_mode';
+	public const OPT_EXCLUDE_PRODUCT_IDS = 'soran_stock_order_exclude_product_ids';
+	public const OPT_EXCLUDE_CAT_IDS = 'soran_stock_order_exclude_cat_ids';
+	public const OPT_EXCLUDE_TAG_IDS = 'soran_stock_order_exclude_tag_ids';
+	public const OPT_EXCLUDE_CUSTOM_TAX = 'soran_stock_order_exclude_custom_taxonomy';
+	public const OPT_EXCLUDE_CUSTOM_TAX_TERM_IDS = 'soran_stock_order_exclude_custom_taxonomy_term_ids';
 
 	private static $instance;
 	private $admin;

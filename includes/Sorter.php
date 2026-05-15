@@ -28,6 +28,10 @@ final class Sorter {
 			return false;
 		}
 
+		if (!$this->passes_rules($query)) {
+			return false;
+		}
+
 		if ($this->plugin->get_bool_option(Plugin::OPT_RESPECT_ORDERBY, 1)) {
 			$q_orderby = $query->get('orderby');
 			if (!empty($q_orderby)) {
@@ -67,6 +71,79 @@ final class Sorter {
 		}
 
 		return false;
+	}
+
+	private function passes_rules(\WP_Query $query): bool {
+		$mode = get_option(Plugin::OPT_RULES_MODE, 'exclude');
+		$mode = in_array($mode, ['exclude', 'include'], true) ? $mode : 'exclude';
+
+		$cat_ids = get_option(Plugin::OPT_EXCLUDE_CAT_IDS, []);
+		$tag_ids = get_option(Plugin::OPT_EXCLUDE_TAG_IDS, []);
+		$product_ids = get_option(Plugin::OPT_EXCLUDE_PRODUCT_IDS, []);
+		$custom_tax = (string) get_option(Plugin::OPT_EXCLUDE_CUSTOM_TAX, '');
+		$custom_tax_term_ids = get_option(Plugin::OPT_EXCLUDE_CUSTOM_TAX_TERM_IDS, []);
+
+		$cat_ids = array_values(array_filter(array_map('intval', (array) $cat_ids)));
+		$tag_ids = array_values(array_filter(array_map('intval', (array) $tag_ids)));
+		$product_ids = array_values(array_filter(array_map('intval', (array) $product_ids)));
+		$custom_tax_term_ids = array_values(array_filter(array_map('intval', (array) $custom_tax_term_ids)));
+		$custom_tax = sanitize_key($custom_tax);
+
+		$has_rules = !empty($cat_ids) || !empty($tag_ids) || !empty($product_ids) || ($custom_tax !== '' && !empty($custom_tax_term_ids));
+		if (!$has_rules) {
+			return true;
+		}
+
+		$matched = false;
+
+		if ($this->matches_current_term('product_cat', $cat_ids)) {
+			$matched = true;
+		}
+		if (!$matched && $this->matches_current_term('product_tag', $tag_ids)) {
+			$matched = true;
+		}
+		if (!$matched && $custom_tax !== '' && $this->matches_current_term($custom_tax, $custom_tax_term_ids)) {
+			$matched = true;
+		}
+		if (!$matched && $product_ids) {
+			$post__in = $query->get('post__in');
+			if (is_array($post__in) && $post__in) {
+				$in_ids = array_values(array_filter(array_map('intval', $post__in)));
+				$matched = (bool) array_intersect($in_ids, $product_ids);
+			}
+		}
+
+		if ($mode === 'exclude') {
+			return !$matched;
+		}
+
+		return $matched;
+	}
+
+	private function matches_current_term(string $taxonomy, array $ids): bool {
+		$taxonomy = sanitize_key($taxonomy);
+		$ids = array_values(array_filter(array_map('intval', (array) $ids)));
+		if ($taxonomy === '' || !$ids) {
+			return false;
+		}
+
+		$is_main_tax = false;
+		if (function_exists('is_tax')) {
+			$is_main_tax = is_tax($taxonomy);
+		}
+		if (!$is_main_tax) {
+			return false;
+		}
+
+		$obj = function_exists('get_queried_object') ? get_queried_object() : null;
+		if (!($obj instanceof \WP_Term)) {
+			return false;
+		}
+		if ((string) $obj->taxonomy !== $taxonomy) {
+			return false;
+		}
+
+		return in_array((int) $obj->term_id, $ids, true);
 	}
 
 	public function filter_posts_clauses(array $clauses, $query): array {
