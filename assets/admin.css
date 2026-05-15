@@ -1,0 +1,283 @@
+.sso-wrap {
+    max-width: 1100px;
+}
+
+.sso-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 12px 0 18px;
+}
+
+.sso-title {
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+}
+
+.sso-subtitle {
+    margin-top: 8px;
+    color: #475569;
+    font-size: 13px;
+}
+
+.sso-badges {
+    display: flex;
+    gap: 8px;
+}
+
+.sso-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 23, 42, .14);
+    background: #fff;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.sso-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 960px) {
+    .sso-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sso-card {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, .10);
+    border-radius: 14px;
+    padding: 16px 16px 12px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+}
+
+.sso-card--intro {
+    background:
+        radial-gradient(540px 240px at 10% 0%, rgba(59, 130, 246, .16), transparent 60%),
+        radial-gradient(460px 220px at 100% 0%, rgba(34, 197, 94, .14), transparent 55%),
+        #fff;
+}
+
+.sso-card-title {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.sso-intro {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.sso-intro__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, .10);
+    background: rgba(255, 255, 255, .9);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, .08);
+}
+
+.sso-intro__icon .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #0f172a;
+}
+
+.sso-intro__title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.sso-intro__desc {
+    margin-top: 8px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.sso-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 12px;
+}
+
+.sso-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 23, 42, .12);
+    background: rgba(255, 255, 255, .9);
+    color: #0f172a;
+    font-weight: 800;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.sso-pill .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.sso-pill--on {
+    border-color: rgba(34, 197, 94, .35);
+    background: rgba(34, 197, 94, .10);
+}
+
+.sso-pill--off {
+    border-color: rgba(239, 68, 68, .35);
+    background: rgba(239, 68, 68, .10);
+}
+
+.sso-pill--primary {
+    border-color: rgba(59, 130, 246, .35);
+    background: rgba(59, 130, 246, .10);
+}
+
+.sso-pill--warn {
+    border-color: rgba(245, 158, 11, .35);
+    background: rgba(245, 158, 11, .12);
+}
+
+.sso-pill--muted {
+    border-color: rgba(148, 163, 184, .35);
+    background: rgba(148, 163, 184, .14);
+}
+
+.sso-sep {
+    height: 1px;
+    background: rgba(15, 23, 42, .08);
+    margin: 12px 0;
+}
+
+.sso-note-title {
+    font-size: 12px;
+    font-weight: 900;
+    color: #0f172a;
+    margin: 0 0 6px;
+}
+
+.sso-list {
+    margin: 0;
+    padding: 0 0 0 18px;
+    color: #334155;
+}
+
+.sso-list li {
+    margin: 6px 0;
+}
+
+.sso-list--compact li {
+    margin: 4px 0;
+}
+
+.sso-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, .10);
+    background: rgba(255, 255, 255, .9);
+}
+
+.sso-contact a {
+    text-decoration: none;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.sso-contact a:hover {
+    text-decoration: underline;
+}
+
+.sso-card .form-table th {
+    width: 280px;
+    padding-left: 0;
+}
+
+.sso-card .form-table td {
+    padding-right: 0;
+}
+
+.sso-switch {
+    position: relative;
+    display: inline-flex;
+    width: 44px;
+    height: 24px;
+    vertical-align: middle;
+}
+
+.sso-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+.sso-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, .6);
+    border: 1px solid rgba(15, 23, 42, .12);
+    transition: background .14s ease, border-color .14s ease;
+}
+
+.sso-slider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, .15);
+    transition: transform .14s ease;
+}
+
+.sso-switch input:checked + .sso-slider {
+    background: rgba(34, 197, 94, .55);
+    border-color: rgba(34, 197, 94, .65);
+}
+
+.sso-switch input:checked + .sso-slider::after {
+    transform: translate(20px, -50%);
+}
+
+.sso-switch input:focus-visible + .sso-slider {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .25);
+}
+
+.sso-card .description {
+    margin: 8px 0 0;
+    color: #64748b;
+}
