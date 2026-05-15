@@ -89,12 +89,33 @@ final class Sorter {
 			$clauses['join'] = $join . " LEFT JOIN {$wpdb->postmeta} {$alias} ON ({$wpdb->posts}.ID = {$alias}.post_id AND {$alias}.meta_key = '_stock_status') ";
 		}
 
-		$direction = $this->plugin->get_bool_option(Plugin::OPT_OUTOFSTOCK_LAST, 1) ? 'ASC' : 'DESC';
-		$order_expr = "CASE WHEN {$alias}.meta_value = 'outofstock' THEN 1 ELSE 0 END";
+		$priority = get_option(Plugin::OPT_STOCK_PRIORITY, null);
+		$allowed = ['instock', 'onbackorder', 'outofstock'];
+		$priority_list = [];
+		if (is_array($priority)) {
+			foreach ($priority as $item) {
+				$key = sanitize_key((string) $item);
+				if (in_array($key, $allowed, true)) {
+					$priority_list[] = $key;
+				}
+			}
+			$priority_list = array_values(array_unique($priority_list));
+		}
+		if (count($priority_list) !== 3) {
+			$priority_list = ['instock', 'onbackorder', 'outofstock'];
+			if (!$this->plugin->get_bool_option(Plugin::OPT_OUTOFSTOCK_LAST, 1)) {
+				$priority_list = ['outofstock', 'instock', 'onbackorder'];
+			}
+		}
+
+		$cases = [];
+		foreach ($priority_list as $i => $status) {
+			$cases[] = "WHEN {$alias}.meta_value = '{$status}' THEN " . (int) $i;
+		}
+		$order_expr = 'CASE ' . implode(' ', $cases) . ' ELSE 3 END';
 		$current_orderby = trim((string) ($clauses['orderby'] ?? ''));
-		$clauses['orderby'] = $order_expr . ' ' . $direction . ($current_orderby !== '' ? ', ' . $current_orderby : '');
+		$clauses['orderby'] = $order_expr . ' ASC' . ($current_orderby !== '' ? ', ' . $current_orderby : '');
 
 		return $clauses;
 	}
 }
-

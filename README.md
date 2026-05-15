@@ -1,6 +1,6 @@
 # Soran Stock Order
 
-Soran Stock Order is a lightweight WordPress plugin that improves WooCommerce product listing UX by pushing **out-of-stock** products to the end of the product loop. It is designed to be low-risk and avoid conflicts by optionally limiting its behavior to the **main query** only.
+Soran Stock Order is a lightweight WordPress plugin that improves WooCommerce product listing UX by controlling the order of products based on WooCommerce stock status (e.g. **in stock**, **on backorder**, **out of stock**). It is designed to be low-risk and avoid conflicts by optionally limiting its behavior to the **main query** only.
 
 ## Requirements
 
@@ -19,12 +19,13 @@ Soran Stock Order is a lightweight WordPress plugin that improves WooCommerce pr
 
 ## How It Works
 
-The plugin hooks into WordPress query clauses and adds an `ORDER BY` expression that prioritizes in-stock products over out-of-stock products using the `_stock_status` post meta.
+The plugin hooks into WordPress query clauses and adds an `ORDER BY` expression that prioritizes products by stock status using the `_stock_status` post meta.
 
 ## Settings
 
 - **Enable**: turn the behavior on/off.
-- **Move out-of-stock to the end**: if disabled, out-of-stock items can be moved to the beginning.
+- **Stock status priority**: set the preferred order (e.g. `instock → onbackorder → outofstock`).
+- **Move out-of-stock to the end (Simple mode)**: legacy/compat toggle.
 - **Respect user sorting (orderby)**: do not modify sorting when a custom orderby is requested.
 - **Only main query (Recommended)**: apply only to the main WooCommerce loop to minimize conflicts with page builders and custom queries.
 - **Apply on shop / taxonomy / tag**: limit where the behavior is applied.
