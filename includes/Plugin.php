@@ -13,6 +13,9 @@ final class Plugin {
 	public const OPT_APPLY_SHOP = 'soran_stock_order_apply_shop';
 	public const OPT_APPLY_TAX = 'soran_stock_order_apply_tax';
 	public const OPT_APPLY_TAG = 'soran_stock_order_apply_tag';
+	public const OPT_APPLY_SEARCH = 'soran_stock_order_apply_search';
+	public const OPT_APPLY_SHORTCODES_BLOCKS = 'soran_stock_order_apply_shortcodes_blocks';
+	public const OPT_ONLY_WOOCOMMERCE_LOOPS = 'soran_stock_order_only_woocommerce_loops';
 	public const OPT_APPLY_ALL = 'soran_stock_order_apply_all';
 	public const OPT_ONLY_MAIN_QUERY = 'soran_stock_order_only_main_query';
 	public const OPT_STOCK_PRIORITY = 'soran_stock_order_stock_priority';

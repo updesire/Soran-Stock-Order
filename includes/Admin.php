@@ -148,6 +148,21 @@ final class Admin {
 			'sanitize_callback' => [$this, 'sanitize_checkbox'],
 			'default' => 1,
 		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_APPLY_SEARCH, [
+			'type' => 'integer',
+			'sanitize_callback' => [$this, 'sanitize_checkbox'],
+			'default' => 0,
+		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_APPLY_SHORTCODES_BLOCKS, [
+			'type' => 'integer',
+			'sanitize_callback' => [$this, 'sanitize_checkbox'],
+			'default' => 0,
+		]);
+		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_ONLY_WOOCOMMERCE_LOOPS, [
+			'type' => 'integer',
+			'sanitize_callback' => [$this, 'sanitize_checkbox'],
+			'default' => 1,
+		]);
 		register_setting(Plugin::OPTION_GROUP, Plugin::OPT_APPLY_ALL, [
 			'type' => 'integer',
 			'sanitize_callback' => [$this, 'sanitize_checkbox'],
@@ -271,6 +286,9 @@ final class Admin {
 		$apply_shop = $this->plugin->get_bool_option(Plugin::OPT_APPLY_SHOP, 1);
 		$apply_tax = $this->plugin->get_bool_option(Plugin::OPT_APPLY_TAX, 1);
 		$apply_tag = $this->plugin->get_bool_option(Plugin::OPT_APPLY_TAG, 1);
+		$apply_search = $this->plugin->get_bool_option(Plugin::OPT_APPLY_SEARCH, 0);
+		$apply_shortcodes_blocks = $this->plugin->get_bool_option(Plugin::OPT_APPLY_SHORTCODES_BLOCKS, 0);
+		$only_wc_loops = $this->plugin->get_bool_option(Plugin::OPT_ONLY_WOOCOMMERCE_LOOPS, 1);
 		$apply_all = $this->plugin->get_bool_option(Plugin::OPT_APPLY_ALL, 0);
 		$only_main_query = $this->plugin->get_bool_option(Plugin::OPT_ONLY_MAIN_QUERY, 1);
 		$stock_priority = get_option(Plugin::OPT_STOCK_PRIORITY, ['instock', 'onbackorder', 'outofstock']);
@@ -347,6 +365,9 @@ final class Admin {
 		echo '<tr><th scope="row">' . esc_html__('اعمال روی صفحه فروشگاه', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_APPLY_SHOP, $apply_shop) . '</td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('اعمال روی دسته‌بندی/صفت', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_APPLY_TAX, $apply_tax) . '</td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('اعمال روی برچسب', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_APPLY_TAG, $apply_tag) . '</td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('اعمال روی جستجوی محصولات', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_APPLY_SEARCH, $apply_search) . '<p class="description">' . esc_html__('اگر صفحه جستجو فقط محصولات را نمایش می‌دهد، این گزینه ترتیب را بر اساس موجودی اعمال می‌کند.', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('اعمال روی شورت‌کدها/بلاک‌ها', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_APPLY_SHORTCODES_BLOCKS, $apply_shortcodes_blocks) . '<p class="description">' . esc_html__('برای لیست‌های محصولی که با شورت‌کد یا بلوک‌ها ساخته می‌شوند (کوئری‌های غیر اصلی).', 'soran-stock-order') . '</p></td></tr>';
+		echo '<tr><th scope="row">' . esc_html__('فقط لوپ‌های ووکامرس (پیشنهادی)', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_ONLY_WOOCOMMERCE_LOOPS, $only_wc_loops) . '<p class="description">' . esc_html__('برای کاهش تداخل با صفحه‌سازها: فقط وقتی کوئری از ووکامرس/بلاک‌ها می‌آید اعمال می‌شود.', 'soran-stock-order') . '</p></td></tr>';
 		echo '<tr><th scope="row">' . esc_html__('اعمال روی همه کوئری‌های محصول', 'soran-stock-order') . '</th><td>' . $this->checkbox_field(Plugin::OPT_APPLY_ALL, $apply_all) . '<p class="description">' . esc_html__('اگر روشن شود، روی هر کوئری محصول (حتی خارج از صفحات ووکامرس) هم اعمال می‌شود.', 'soran-stock-order') . '</p></td></tr>';
 
 		echo '</table>';

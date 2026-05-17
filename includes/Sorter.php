@@ -24,7 +24,8 @@ final class Sorter {
 		if (!$this->plugin->get_bool_option(Plugin::OPT_ENABLE, 1)) {
 			return false;
 		}
-		if ($this->plugin->get_bool_option(Plugin::OPT_ONLY_MAIN_QUERY, 1) && !$query->is_main_query()) {
+		$is_main = $query->is_main_query();
+		if ($this->plugin->get_bool_option(Plugin::OPT_ONLY_MAIN_QUERY, 1) && !$is_main) {
 			return false;
 		}
 
@@ -42,10 +43,25 @@ final class Sorter {
 			}
 		}
 
-		$apply_all = $this->plugin->get_bool_option(Plugin::OPT_APPLY_ALL, 0);
 		$post_type = $query->get('post_type');
 		$is_product_query = $post_type === 'product' || (is_array($post_type) && in_array('product', $post_type, true));
+		$apply_all = $this->plugin->get_bool_option(Plugin::OPT_APPLY_ALL, 0);
 		if ($apply_all && $is_product_query) {
+			return true;
+		}
+
+		$apply_shortcodes_blocks = $this->plugin->get_bool_option(Plugin::OPT_APPLY_SHORTCODES_BLOCKS, 0);
+		$only_wc_loops = $this->plugin->get_bool_option(Plugin::OPT_ONLY_WOOCOMMERCE_LOOPS, 1);
+		if (!$is_main && $apply_shortcodes_blocks && $is_product_query) {
+			return $only_wc_loops ? $this->is_woocommerce_loop_query($query) : true;
+		}
+
+		if (!$is_main) {
+			return false;
+		}
+
+		$apply_search = $this->plugin->get_bool_option(Plugin::OPT_APPLY_SEARCH, 0);
+		if ($apply_search && !empty($query->is_search) && $is_product_query) {
 			return true;
 		}
 
@@ -67,6 +83,33 @@ final class Sorter {
 			return true;
 		}
 		if ($apply_tax && function_exists('is_product_taxonomy') && is_product_taxonomy()) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private function is_woocommerce_loop_query(\WP_Query $query): bool {
+		$wc_query = (string) $query->get('wc_query');
+		if ($wc_query === 'product_query') {
+			return true;
+		}
+
+		$tax_query = $query->get('tax_query');
+		if (is_array($tax_query)) {
+			foreach ($tax_query as $item) {
+				if (!is_array($item)) {
+					continue;
+				}
+				$tax = isset($item['taxonomy']) ? sanitize_key((string) $item['taxonomy']) : '';
+				if ($tax === 'product_visibility') {
+					return true;
+				}
+			}
+		}
+
+		$post__in = $query->get('post__in');
+		if (is_array($post__in) && $post__in && $query->get('fields') === 'ids') {
 			return true;
 		}
 

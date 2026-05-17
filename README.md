@@ -28,6 +28,9 @@ The plugin hooks into WordPress query clauses and adds an `ORDER BY` expression 
 - **Move out-of-stock to the end (Simple mode)**: legacy/compat toggle.
 - **Respect user sorting (orderby)**: do not modify sorting when a custom orderby is requested.
 - **Only main query (Recommended)**: apply only to the main WooCommerce loop to minimize conflicts with page builders and custom queries.
+- **Apply on product search**: optionally apply on product search result pages.
+- **Apply on shortcodes/blocks**: optionally apply on non-main product loops (shortcodes, blocks, widgets).
+- **Only WooCommerce loops**: when applying to non-main loops, try to limit the behavior to WooCommerce/Blocks product queries to avoid page-builder conflicts.
 - **Apply on shop / taxonomy / tag**: limit where the behavior is applied.
 - **Apply to all product queries**: forces behavior across any product query (use with caution).
 
